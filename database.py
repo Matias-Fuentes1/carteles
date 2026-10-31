@@ -10,7 +10,7 @@ DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "plancha_db"
 
-DATABASE_URL = "postgresql+psycopg://postgres_hehq_user:AIb893Z9jTGP6XyxTJKpuh9ppgj2c5I0@://render.com"
+DATABASE_URL = "postgresql://postgres_hehq_user:AIb893Z9jTGP6XyxTJKpuh9ppgj2c5I0@dpg-dbise6mtlv9c73bjoq80-a.oregon-postgres.render.com/postgres_hehq"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
