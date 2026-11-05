@@ -79,3 +79,5 @@ def asignar_link(
             <p style='color:green;'>Ya podés escanearlo de nuevo para verificar el desvío directo.</p>
         </body>
     """)
+# Requerimiento obligatorio para que Vercel Serverless mapee correctamente la app
+app = app
