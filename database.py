@@ -1,27 +1,78 @@
-# database.py
+import os
+
 from sqlalchemy import create_engine, Column, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# 🚨 CAMBIO CLAVE: Usamos tu URL real de internet con el driver compatible de Vercel (+psycopg)
-DATABASE_URL = "postgresql+psycopg://postgres_hehq_user:AIb893Z9jTGP6XyxTJKpuh9ppgj2c5I0@://render.com"
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Obtener la conexión desde las variables de entorno
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError(
+        "Falta configurar DATABASE_URL en las variables de entorno."
+    )
+
+
+# Adaptar la URL de Render al driver psycopg 3
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgres://",
+        "postgresql+psycopg://",
+        1
+    )
+
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgresql://",
+        "postgresql+psycopg://",
+        1
+    )
+
+elif not DATABASE_URL.startswith("postgresql+psycopg://"):
+    raise RuntimeError("El formato de DATABASE_URL no es válido.")
+
+
+# Render requiere SSL para conexiones externas
+if "sslmode=" not in DATABASE_URL:
+    separator = "&" if "?" in DATABASE_URL else "?"
+    DATABASE_URL += f"{separator}sslmode=require"
+
+
+# Crear conexión
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    pool_size=1,
+    max_overflow=0
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
 Base = declarative_base()
 
-# Definimos el modelo de la tabla en Postgres
+
+# Modelo de la tabla
 class CartelLink(Base):
     __tablename__ = "links"
+
     id_cartel = Column(String, primary_key=True, index=True)
     url_destino = Column(String, nullable=False)
 
+
+# Crear tabla si todavía no existe
 def inicializar_base_de_datos():
-    # Crea la tabla automaticamente en el Postgres de Render
     Base.metadata.create_all(bind=engine)
 
+
+# Sesión de base de datos
 def get_db():
     db = SessionLocal()
+
     try:
         yield db
     finally:
