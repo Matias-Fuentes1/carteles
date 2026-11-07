@@ -3,14 +3,8 @@ from sqlalchemy import create_engine, Column, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Configura tus credenciales aca
-DB_USER = "postgres"
-DB_PASSWORD = "mati123"
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "plancha_db"
-
-DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# 🚨 CAMBIO CLAVE: Usamos tu URL real de internet con el driver compatible de Vercel (+psycopg)
+DATABASE_URL = "postgresql+psycopg://postgres_hehq_user:AIb893Z9jTGP6XyxTJKpuh9ppgj2c5I0@://render.com"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -23,7 +17,7 @@ class CartelLink(Base):
     url_destino = Column(String, nullable=False)
 
 def inicializar_base_de_datos():
-    # Crea la tabla automaticamente si no existe en Postgres
+    # Crea la tabla automaticamente en el Postgres de Render
     Base.metadata.create_all(bind=engine)
 
 def get_db():
