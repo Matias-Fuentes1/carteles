@@ -7,8 +7,10 @@ import database
 app = FastAPI(title="PlanchaQR Clon Profesional - Postgres")
 PASSWORD_MAESTRA = "Olavarria2026"
 
-# Asegurar que las tablas existan en Postgres al arrancar
-database.inicializar_base_de_datos()
+# 🚨 EL CAMBIO: Metemos la inicialización adentro del evento startup
+@app.on_event("startup")
+def startup_event():
+    database.inicializar_base_de_datos()
 
 # 1. El Link Puente (://tudominio.com)
 @app.get("/r/{id_cartel}")
