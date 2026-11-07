@@ -27,6 +27,7 @@ def startup_event():
 @app.get("/r/{id_cartel}")
 def procesar_redireccion(
     id_cartel: str,
+    configurar: int = 0,
     db: Session = Depends(database.get_db)
 ):
 
@@ -34,10 +35,12 @@ def procesar_redireccion(
     destino_vercel = os.getenv("QR_REDIRECT_BASE")
 
     if destino_vercel:
-        return RedirectResponse(
-            url=f"{destino_vercel.rstrip('/')}/r/{id_cartel}",
-            status_code=302
-        )
+        url = f"{destino_vercel.rstrip('/')}/r/{id_cartel}"
+
+        if configurar == 1:
+            url += "?configurar=1"
+
+        return RedirectResponse(url=url, status_code=302)
 
     # Funcionamiento normal en Vercel
     resultado = (
@@ -46,7 +49,8 @@ def procesar_redireccion(
         .first()
     )
 
-    if resultado:
+    # Redirigir al destino guardado solamente si no se pidió configurar
+    if resultado and configurar != 1:
         return RedirectResponse(
             url=resultado.url_destino,
             status_code=302
@@ -107,7 +111,7 @@ def procesar_redireccion(
     <body>
         <div class="card">
 
-            <h2>🚀 Activar Cartel Inteligente #{cartel_html}</h2>
+            <h2>🚀 Configurar Cartel #{cartel_html}</h2>
 
             <form action="/asignar" method="post">
 
@@ -146,7 +150,7 @@ def procesar_redireccion(
     return HTMLResponse(content=html_setup)
 
 
-# 2. Procesar la asignación del enlace
+# 2. Procesar la asignación o actualización del enlace
 @app.post("/asignar")
 def asignar_link(
     id_cartel: str = Form(...),
@@ -236,4 +240,5 @@ def asignar_link(
         </body>
         </html>
     """)
+
 
