@@ -1,3 +1,4 @@
+
 import os
 import secrets
 
@@ -17,7 +18,9 @@ app = FastAPI(title="PlanchaQR - Carteles Inteligentes")
 # Inicializar la base de datos al arrancar
 @app.on_event("startup")
 def startup_event():
-    database.inicializar_base_de_datos()
+    # Render funciona únicamente como puente hacia Vercel
+    if not os.getenv("QR_REDIRECT_BASE"):
+        database.inicializar_base_de_datos()
 
 
 # 1. Redireccionar o mostrar formulario de configuración
@@ -27,6 +30,16 @@ def procesar_redireccion(
     db: Session = Depends(database.get_db)
 ):
 
+    # Si estamos en Render, enviar el QR antiguo a Vercel
+    destino_vercel = os.getenv("QR_REDIRECT_BASE")
+
+    if destino_vercel:
+        return RedirectResponse(
+            url=f"{destino_vercel.rstrip('/')}/r/{id_cartel}",
+            status_code=302
+        )
+
+    # Funcionamiento normal en Vercel
     resultado = (
         db.query(database.CartelLink)
         .filter(database.CartelLink.id_cartel == id_cartel)
@@ -223,3 +236,4 @@ def asignar_link(
         </body>
         </html>
     """)
+
